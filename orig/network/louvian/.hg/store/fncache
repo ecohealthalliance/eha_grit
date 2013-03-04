@@ -1,0 +1,9 @@
+data/index.rst.i
+data/Makefile.i
+data/conf.py.i
+data/communitytests.py.i
+data/_static/default.css.i
+data/community.py.i
+data/test_community.py.i
+data/api.rst.i
+data/_templates/layout.html.i
