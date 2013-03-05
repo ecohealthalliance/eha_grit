@@ -51,6 +51,7 @@ def make_graph_limit (nodes, weights, limit):
     return G
 
 
+# csv file passed in as param
 if __name__ == '__main__':
     if len (argv) != 2:
         print "Usage: python naive.py <INPUT>"
