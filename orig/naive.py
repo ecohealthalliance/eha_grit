@@ -10,9 +10,10 @@ from louvian import community
 
 def equal_weights (nodes):
     weights = []
-    denom = float (len (nodes[0]['pos']))
+    #denom = float (len (nodes[0]['pos']))
     for i in range (0, len (nodes[0]['pos'])):
-        weights.append (1.0 / denom)
+        weights.append (1.0)
+        #weights.append (1.0 / denom)
     return weights
 
 def jitter_weights (weights):
@@ -30,6 +31,7 @@ def jitter_weights (weights):
     return new_weights
 
 def make_graph_limit (nodes, weights, limit):
+    # limit is the number of edges to keep for each node
     G = nx.Graph ()
     for node in nodes:
         G.add_node (node['_id'], node)
@@ -39,19 +41,24 @@ def make_graph_limit (nodes, weights, limit):
             total = 0.0
             for w, f, s in zip (weights, first['pos'], second['pos']):
                 if f and s:
+                    # Calculate similiarity
+                    # Optimal similiarity is 0
                     total += w * ((f - s) / 100.0)
             edges.append ((second['_id'], total))
         edges.sort (key = lambda x: x[1])
-        edges.reverse ()
         for k in range (0, limit):
             G.add_edge (first['_id'], edges[k][0], {'weight': edges[k][1]})
     return G
 
 
 if __name__ == '__main__':
+    if len (argv) != 2:
+        print "Usage: python naive.py <INPUT>"
+        exit (1)
     nodes = read_table (argv[1])
     weights = equal_weights (nodes)
     mod = -.5
+    # Build a partition for the network
     part = {}
     for node in nodes:
         part[node['_id']] = node['attr']['Disease']
@@ -61,5 +68,9 @@ if __name__ == '__main__':
         new_mod = community.modularity (part, G)
         if new_mod > mod:
             mod = new_mod
+            weights = new_weights
         print mod
+
+    
+
         

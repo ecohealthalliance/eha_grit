@@ -8,25 +8,22 @@ MINOR = 25
 
 def read_table (path):
     nodes = []
-    #buffer = open (path, 'r').read ()
-    #buffer = buffer.replace ('\r', '')
-    #rows = buffer.split ('\n')
     rows = csv.reader (open (path, 'r'))
     contrib = []
+    # The first row contains a 1 or NULL that indicates if the field below contributes to the vector
     for elem in rows.next ():
         if len (elem) > 0:
             contrib.append (True)
         else:
             contrib.append (False)
+    # The second row contains the headers
     keys = rows.next ()
     id = 0
     for row in iter (rows):
-        #if len (row) == 0:
-        #    continue
         pos = []
         attr = {}
         for key, value, include in zip (keys, row, contrib):
-            #print ' '.join ([key, value, str (include)])
+            # Cleanup the strings from the data
             if include:
                 if value == 'y':
                     value = Y
