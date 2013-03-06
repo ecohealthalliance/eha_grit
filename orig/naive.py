@@ -91,25 +91,27 @@ if __name__ == '__main__':
         exit (1)
     data = read_table (argv[1])
 
+    # Run N times, exclude one data point each time
     for i in range (0, len (data)):
-        nodes = []
+        train = []
+        # Build the training set and test point
         for j, node in enumerate (data):
             if i == j:
                 test = node
             else:
-                nodes.append (node)
+                train.append (node)
 
 
         # Optimize modularity (mod) using weights and the graph
         mod = -.5
-        weights = equal_weights (nodes)
+        weights = equal_weights (train)
         
         step = 1
 
         # For now, stop after 100 iterations
         while step < 100:
             new_weights = jitter_weights (weights)
-            G = make_graph (nodes, new_weights, 4)
+            G = make_graph (train, new_weights, 4)
 
             part = community.best_partition (G)
             new_mod = community.modularity (part, G)
@@ -119,6 +121,6 @@ if __name__ == '__main__':
             step += 1
 
         print test['attr']['Disease']
-        percents = classify_node (nodes, test, weights)
+        percents = classify_node (train, test, weights)
         print percents
         print ''
