@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 from input_output import read_table
 from louvian import community
 
+from scipy.optimize import anneal
+
 def equal_weights (nodes):
     weights = []
     #denom = float (len (nodes[0]['pos']))
@@ -18,25 +20,27 @@ def equal_weights (nodes):
     return weights
 
 def jitter_weights (weights):
+    # The original way of moving around the space
     new_weights = copy (weights)
     i = int (math.floor (random () * len (weights)))
     j = int (math.floor (random () * len (weights)))
-    #MAX = min (weights[i], weights[j])
-    #epsilon = (random () * MAX) - MAX / 2.0
     epsilon = random ()
     if (new_weights[j] - epsilon) >= 0:
         new_weights[i] += epsilon
         new_weights[j] -= epsilon
-    '''if new_weights[i] < 0 or new_weights[j] < 0:
-        return weights
-    else:
-        return new_weights'''
     return new_weights
+    '''# A less contstrained way of moving around the space
+    new_weights = copy (weights)
+    i = int (math.floor (random () * len (weights)))
+    epsilon = 2.0 * random () - 1.0
+    if (new_weights[i] + epsilon) >= 0:
+        new_weights[i] += epsilon
+    return new_weights'''
 
 
 def classify_node (train, test, weights): 
     nodes = train + [test]
-    
+
     classify_graph = make_graph (nodes, weights, 4)
 
     communities = community.best_partition (classify_graph)
@@ -60,7 +64,7 @@ def classify_node (train, test, weights):
     for disease in percents:
         percents[disease] /= float (len (diseases))
     return percents
-        
+
 
 def make_graph (nodes, weights, limit):
     # limit is the number of edges to keep for each node
@@ -81,7 +85,15 @@ def make_graph (nodes, weights, limit):
         edges.reverse ()
         for k in range (0, limit):
             G.add_edge (first['_id'], edges[k][0], {'weight': edges[k][1]})
+        #for edge in edges:
+        #    G.add_edge (first['_id'], edge[0], {'weight': edge[1]})
     return G
+
+
+def f (weights, nodes, limit):
+    G = make_graph (nodes, weights, limit)
+    part = community.best_partition (G)
+    return community.modularity (part, G)
 
 
 # csv file passed in as param
@@ -101,15 +113,17 @@ if __name__ == '__main__':
             else:
                 train.append (node)
 
-
         # Optimize modularity (mod) using weights and the graph
         mod = -.5
-        weights = equal_weights (train)
+        initial_weights = equal_weights (train)
+
+        weights = anneal (f, initial_weights, args = [train, 4], lower = 0, upper = 1)
+        print weights
         
-        step = 1
+        #step = 0
 
         # For now, stop after 100 iterations
-        while step < 100:
+        '''while step < 1000:
             new_weights = jitter_weights (weights)
             G = make_graph (train, new_weights, 4)
 
@@ -119,8 +133,11 @@ if __name__ == '__main__':
                 mod = new_mod
                 weights = new_weights
             step += 1
+            print mod'''
 
         print test['attr']['Disease']
         percents = classify_node (train, test, weights)
         print percents
         print ''
+
+        exit (0)
