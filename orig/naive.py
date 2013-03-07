@@ -9,15 +9,17 @@ import matplotlib.pyplot as plt
 from input_output import read_table
 from louvian import community
 
+import numpy as np
 from scipy.optimize import anneal
 
-def equal_weights (nodes):
+def equal_weights (nodes, value):
     weights = []
     #denom = float (len (nodes[0]['pos']))
     for i in range (0, len (nodes[0]['pos'])):
-        weights.append (1.0)
+        weights.append (value)
         #weights.append (1.0 / denom)
     return weights
+
 
 def jitter_weights (weights):
     # The original way of moving around the space
@@ -74,6 +76,8 @@ def make_graph (nodes, weights, limit):
     for i, first in enumerate (nodes):
         edges = []
         for j, second in enumerate (nodes):
+            if i == j:
+                continue
             total = 0.0
             for w, f, s in zip (weights, first['pos'], second['pos']):
                 if f and s:
@@ -84,19 +88,36 @@ def make_graph (nodes, weights, limit):
         edges.sort (key = lambda x: x[1])
         edges.reverse ()
         for k in range (0, limit):
-            G.add_edge (first['_id'], edges[k][0], {'weight': edges[k][1]})
+            if not G.has_edge (edges[k][0], first['_id']):
+                G.add_edge (first['_id'], edges[k][0], {'weight': edges[k][1]})
         #for edge in edges:
         #    G.add_edge (first['_id'], edge[0], {'weight': edge[1]})
     return G
 
 
+# Step is just a counter so we can see where we are in the optimization
+step = 0
+
 def f (weights, nodes, limit):
+    # scipy does not check limits
+    if np.amax (weights) > 1.0 or np.amin (weights) < 0.0:
+        return float ('inf')
+
     G = make_graph (nodes, weights, limit)
+    # Find the best partition possible and get the modularity of it
     part = community.best_partition (G)
-    return community.modularity (part, G)
+    modularity = community.modularity (part, G)
+
+    # Print out the status of the algorithm
+    global step
+    print "Step %d: %f" % (step, modularity)
+    step += 1
+
+    # Technically, simulated annaling looks for a minimum, so to invert modularity
+    return -modularity
 
 
-# csv file passed in as param
+# argv[1] is a csv file to read data from
 if __name__ == '__main__':
     if len (argv) != 2:
         print "Usage: python naive.py <INPUT>"
@@ -113,27 +134,11 @@ if __name__ == '__main__':
             else:
                 train.append (node)
 
-        # Optimize modularity (mod) using weights and the graph
-        mod = -.5
-        initial_weights = equal_weights (train)
-
-        weights = anneal (f, initial_weights, args = [train, 4], lower = 0, upper = 1)
-        print weights
+        initial_weights = equal_weights (train, .5)
+        min_weights = equal_weights (train, 0.0)
+        max_weights = equal_weights (train, 1.0)
         
-        #step = 0
-
-        # For now, stop after 100 iterations
-        '''while step < 1000:
-            new_weights = jitter_weights (weights)
-            G = make_graph (train, new_weights, 4)
-
-            part = community.best_partition (G)
-            new_mod = community.modularity (part, G)
-            if new_mod > mod:
-                mod = new_mod
-                weights = new_weights
-            step += 1
-            print mod'''
+        weights = anneal (f, initial_weights, args = [train, 4], lower = min_weights, upper = max_weights, maxiter = 1)[0]
 
         print test['attr']['Disease']
         percents = classify_node (train, test, weights)
