@@ -6,16 +6,16 @@ from copy import copy
 import networkx as nx
 import matplotlib.pyplot as plt
 
-from input_output import read_table
+from input_output import IO
 from louvian import community
 
 import numpy as np
 from scipy.optimize import anneal
 
-def equal_weights (nodes, value):
+def equal_weights (nodes,value,vectorLength):
     weights = []
     #denom = float (len (nodes[0]['pos']))
-    for i in range (0, len (nodes[0]['pos'])):
+    for i in range (0, vectorLength):
         weights.append (value)
         #weights.append (1.0 / denom)
     return weights
@@ -73,17 +73,14 @@ def make_graph (nodes, weights, limit):
     G = nx.Graph ()
     for node in nodes:
         G.add_node (node['_id'], node)
+
     for i, first in enumerate (nodes):
         edges = []
         for j, second in enumerate (nodes):
             if i == j:
                 continue
             total = 0.0
-            for w, f, s in zip (weights, first['pos'], second['pos']):
-                if f and s:
-                    # Calculate similiarity
-                    # Optimal similiarity is 0, divide by 100 to normalize
-                    total += (2.0 - 2.0 * w * (abs (f - s) / 100.0))
+            total = addToTotal(first,second,total,weights)
             edges.append ((second['_id'], total))
         edges.sort (key = lambda x: x[1])
         edges.reverse ()
@@ -93,6 +90,17 @@ def make_graph (nodes, weights, limit):
         #for edge in edges:
         #    G.add_edge (first['_id'], edge[0], {'weight': edge[1]})
     return G
+
+def addToTotal(first,second,total,weights):
+    for key, f in first['pos'].items():
+        s = second['pos'].get(key)
+        if s:
+            # Calculate similiarity
+            # Optimal similiarity is 0, divide by 100 to normalize
+            # could precompute all abs(f-s) for future graphs??
+            total += 100 - weights[key] * (abs (f - s))
+    # normalize by 50, which is 2/100 hmmmm
+    return total/50.0
 
 
 # Step is just a counter so we can see where we are in the optimization
@@ -117,12 +125,17 @@ def f (weights, nodes, limit):
     return -modularity
 
 
+EDGES_TO_KEEP = 4
+
+
 # argv[1] is a csv file to read data from
 if __name__ == '__main__':
     if len (argv) != 2:
         print "Usage: python naive.py <INPUT>"
         exit (1)
-    data = read_table (argv[1])
+
+    io = IO()
+    data = io.read_table (argv[1])
 
     # Run N times, exclude one data point each time
     for i in range (0, len (data)):
@@ -134,11 +147,13 @@ if __name__ == '__main__':
             else:
                 train.append (node)
 
-        initial_weights = equal_weights (train, .5)
-        min_weights = equal_weights (train, 0.0)
-        max_weights = equal_weights (train, 1.0)
+        initial_weights = equal_weights (train, .5, io.vectorLength)
+        min_weights = equal_weights (train, 0.0, io.vectorLength)
+        max_weights = equal_weights (train, 1.0, io.vectorLength)
         
-        weights = anneal (f, initial_weights, args = [train, 4], lower = min_weights, upper = max_weights, maxiter = 1)[0]
+        # anneal will call f(x) f startin with initial weights,
+        # train is training set of nodes
+        weights = anneal (f, initial_weights, args = [train, EDGES_TO_KEEP], lower = min_weights, upper = max_weights, maxiter = 1)[0]
 
         print test['attr']['Disease']
         percents = classify_node (train, test, weights)
