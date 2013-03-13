@@ -54,7 +54,7 @@ if __name__ == '__main__':
             x.append (item['pos'])
 
         prob = svm_problem (y, x)
-        param = svm_parameter ('-q -t %d' % (kernel,))
+        param = svm_parameter ('-b 1 -q -t %d' % (kernel,))
 
         model = svm_train (prob, param)
         
@@ -65,17 +65,20 @@ if __name__ == '__main__':
             y.append (label2int (item['attr']['Disease']))
             x.append (item['pos'])
 
-        pred = svm_predict (y, x, model, '-q')
+        pred, accuracy, probabilities = svm_predict (y, x, model, '-b 1 -q')
 
-        #if int (pred[0][0]) == name2label (test[0]['attr']['Disease'], label_name):
+        #if int (pred[0]) == name2label (test[0]['attr']['Disease'], label_name):
         test_label = test[0]['attr']['Disease']
-        if int (pred[0][0]) == label2int (test_label):
+        if accuracy[0] == 100:
             correct[test_label] += 1
+            #print "Correctly classified %s in row %d with mse %d" % (test_label, i, accuracy[1])
+            #print "Probabilities: %s" % ["%s: %f" % (int2label(i), probabilities[0][i]) for i in range(len(probabilities[0]))]
         else:
-            print "Misclassified: %s as %s in row %d" % (test[0]['attr']['Disease'], int2label (pred[0][0]), i)
+            print "Misclassified: %s as %s in row %d with mse %d" % (test_label, int2label (pred[0]), i, accuracy[1])
+            print "Probabilties: %s: %f, %s: %f\n" % (test_label, probabilities[0][label2int(test_label)], int2label(pred[0]), probabilities[0][int(pred[0])])
             wrong[test_label] += 1
         
-        #print test[0]['attr']['Disease'] + ' ' + str (name2label (test[0]['attr']['Disease'], label_name))  + ' ' + str (pred[0][0])
+        #print test[0]['attr']['Disease'] + ' ' + str (name2label (test[0]['attr']['Disease'], label_name))  + ' ' + str (pred[0])
 
     print ''
 
