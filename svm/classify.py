@@ -4,32 +4,6 @@ from svmutil import svm_problem, svm_parameter, svm_train, svm_predict
 
 from io import read_table
 
-max_label = 0
-labels = {}
-inv_labels = {}
-
-correct = {}
-wrong = {}
-
-def label2int (label):
-    global max_label, labels, inv_labels, correct, wrong
-    if not labels.has_key (label):
-        labels[label] = max_label
-        inv_labels[max_label] = label
-        max_label += 1
-        correct[label] = 0
-        wrong[label] = 0
-    return labels[label]
-
-def int2label (label_int):
-    global max_label, labels, inv_labels
-    return inv_labels[label_int]
-
-'''def name2label (label, pos_name):
-    if label == pos_name:
-        return 1
-    else:
-        return -1'''
 
 if __name__ == '__main__':
     data = read_table (argv[1])
@@ -37,52 +11,77 @@ if __name__ == '__main__':
 
     kernel = int (argv[2])
 
+    diseases = set([row['attr']['Disease'] for row in data])
+    correct = dict((disease, 0) for disease in diseases)
+    wrong = dict((disease, 0) for disease in diseases)
+
     for i in range (0, len (data)):
-        train = []
-        test = []
-        for j, item in enumerate (data):
-            if i != j:
-                train.append (item)
-            else:
-                test.append (item)
+        test_label = data[i]['attr']['Disease']
 
-        y = []
-        x = []
-        for item in train:
-            #y.append (name2label (item['attr']['Disease'], label_name))
-            y.append (label2int (item['attr']['Disease']))
-            x.append (item['pos'])
+        disease_probabilities = dict((disease, 0) for disease in diseases)
 
-        prob = svm_problem (y, x)
-        param = svm_parameter ('-q -t %d' % (kernel,))
+        for disease in diseases:
+            test = [data[i]]
+            train = [row for j, row in enumerate(data) if j != i]
 
-        model = svm_train (prob, param)
+            y = []
+            x = []
+            for item in train:
+                if item['attr']['Disease'] == disease:
+                    y.append(0)
+                else:
+                    y.append(1)
+                x.append (item['pos'])
+
+            prob = svm_problem (y, x)
+            param = svm_parameter ('-b 1 -q -t %d' % (kernel,))
+
+            model = svm_train (prob, param)
         
-        y = []
-        x = []
-        for item in test:
-            #y.append (name2label (item['attr']['Disease'], label_name))
-            y.append (label2int (item['attr']['Disease']))
-            x.append (item['pos'])
+            y = []
+            x = []
+            for item in test:
+                if item['attr']['Disease'] == disease:
+                    y.append(0)
+                else:
+                    y.append(1)
+                x.append (item['pos'])
 
-        pred = svm_predict (y, x, model, '-q')
+            pred, accuracy, probabilities = svm_predict (y, x, model, '-b 1 -q')
+            #prob_disease = probabilities[0][0]
+            #prob_not_disease = probabilities[0][1]
+            #print "testing %s for not %s/%s" % (test_label, disease, disease)
+            #print "predicted %s" % (disease if pred[0] == 0 else "not %s" % disease)
+            #print "%s / %s / %s" % (pred, accuracy, probabilities)
+            #print
+            #print "prob: %s- %f, %s- %f" % (disease, prob_disease, "not %s" % disease, prob_not_disease)
+            disease_probabilities[disease] = min(probabilities[0]) if accuracy[0] == 100 else max(probabilities[0])
+            #if disease_probabilities[disease] > 0.5 and test_label == disease:
+            #    correct[test_label] += 1
+            #elif disease_probabilities[disease] < 0.5 and test_label != disease:
+            #    correct[test_label] += 1
+            #else:
+            #    wrong[test_label] += 1
+            #    print "Misclassified %s as %s in row %d" % (test_label, disease if test_label != disease else "not %s" % disease, i)
+            #print
 
-        #if int (pred[0][0]) == name2label (test[0]['attr']['Disease'], label_name):
-        test_label = test[0]['attr']['Disease']
-        if int (pred[0][0]) == label2int (test_label):
+        prediction = max(disease_probabilities.iterkeys(), key=(lambda key: disease_probabilities[key]))
+        if prediction == test_label:
             correct[test_label] += 1
         else:
-            print "Misclassified: %s as %s in row %d" % (test[0]['attr']['Disease'], int2label (pred[0][0]), i)
             wrong[test_label] += 1
+            print "Misclassified: %s as %s in row %d" % (test_label, prediction, i)
+            print "Probabilties: %s\n" % disease_probabilities
+
         
-        #print test[0]['attr']['Disease'] + ' ' + str (name2label (test[0]['attr']['Disease'], label_name))  + ' ' + str (pred[0][0])
+        #print test[0]['attr']['Disease'] + ' ' + str (name2label (test[0]['attr']['Disease'], label_name))  + ' ' + str (pred[0])
 
     print ''
 
     total_correct = 0
     total_wrong = 0
 
-    for label in labels:
+    for label in diseases:
         print "%s identified %d/%d times (%d percent)" % (label, correct[label], correct[label] + wrong[label], int (round (float (correct[label]) / float (correct[label] + wrong[label]) * 100.00)))
         total_correct += correct[label]
         total_wrong += wrong[label]
