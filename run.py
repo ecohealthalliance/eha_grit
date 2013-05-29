@@ -2,7 +2,7 @@ import argparse
 from collections import defaultdict
 
 from format import bogich
-from classifier import svm_standard, svm_probability, sklearn_svm, naive_bayes, decision_tree, stochastic_gradient_descent, random_forest, gradient_boosting, extra_trees
+from classifier import svm_standard, svm_probability, sklearn_svm, naive_bayes, decision_tree, stochastic_gradient_descent, random_forest, gradient_boosting, extra_trees, gmm, k_means, ward, sklearn_novelty
 
 FORMATS = {
     'bogich': bogich,
@@ -18,6 +18,10 @@ CLASSIFIERS = {
     'random_forest': random_forest,
     'gradient_boosting': gradient_boosting,
     'extra_trees': extra_trees,
+    'gmm': gmm,
+    'k_means': k_means,
+    'ward': ward,
+    'sklearn_novelty': sklearn_novelty,
 }
 
 def cross_validate(data, classifier):
