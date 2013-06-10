@@ -1,0 +1,48 @@
+.other {
+    color: gainsboro;
+}
+
+.organization {
+    color: green;
+}
+
+.disease {
+    color: red;
+}
+
+.symptom {
+    color: orange;
+}
+
+.location {
+    color: blue;
+}
+
+html, body {
+    height: 100%;
+}
+
+#train, #test {
+    border: 2px solid black;
+    cursor: pointer;
+    padding: 5px;
+    margin: 5px;
+    width: 70px;
+}
+
+#test-data {
+    width: 200px;
+    height: 200px;
+}
+
+#training-data {
+    float: right;
+    height: 90%;
+    overflow-y: scroll;
+}
+
+#test-results {
+    height: 50%;
+    width: 200px;
+    overflow-y: scroll;
+}
