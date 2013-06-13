@@ -10,7 +10,7 @@ if __name__ == '__main__':
     parser.add_option('-u', dest='fudd_username')
     parser.add_option('-p', dest='fudd_pw')
 
-    default_brat_data_path = '/var/www/brat/data/promed'
+    default_brat_data_path = '/var/www/brat/data/promed/'
     parser.add_option('--brat-path', dest='brat_data_path', default=default_brat_data_path)
 
     (options, args) = parser.parse_args()
