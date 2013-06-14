@@ -37,4 +37,4 @@ nosetests.xml
 *~
 .DS_Store
 
-ner/tmp
+ner/classifiers

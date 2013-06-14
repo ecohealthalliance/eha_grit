@@ -59,10 +59,10 @@ def train():
                             word += next_char
                         i += 1
                     
-    with open('tmp/train.tsv', 'w') as train_file:
+    with open('%s/train.tsv' % app.config['CLASSIFIER_PATH'], 'w') as train_file:
         train_file.write(training_data)
 
-    train_cmd = 'java -cp lib/stanford-ner.jar edu.stanford.nlp.ie.crf.CRFClassifier -prop lib/train.prop'
+    train_cmd = 'java -cp %s/stanford-ner.jar edu.stanford.nlp.ie.crf.CRFClassifier -prop %s/train.prop -trainFile %s/train.tsv -serializeTo %s/disease-ner-model.ser.gz' % (app.config["LIB_PATH"], app.config["LIB_PATH"], app.config['CLASSIFIER_PATH'], app.config['CLASSIFIER_PATH'])
     system(train_cmd)
     return "true"
 
@@ -70,16 +70,16 @@ def train():
 def test():
     test_data = request.form['data']
     
-    with open('tmp/test.txt', 'w') as test_file:
+    with open('%s/test.txt' % app.config['CLASSIFIER_PATH'], 'w') as test_file:
         test_file.write(test_data)
 
-    tok_command = "java -cp lib/stanford-ner.jar edu.stanford.nlp.process.PTBTokenizer tmp/test.txt > tmp/test.tok"
+    tok_command = "java -cp %s/stanford-ner.jar edu.stanford.nlp.process.PTBTokenizer %s/test.txt > %s/test.tok" % (app.config["LIB_PATH"], app.config['CLASSIFIER_PATH'], app.config['CLASSIFIER_PATH'])
     system(tok_command)
 
-    test_command = "java -cp lib/stanford-ner.jar edu.stanford.nlp.ie.crf.CRFClassifier -loadClassifier tmp/disease-ner-model.ser.gz -testFile tmp/test.tok > tmp/results.txt"
+    test_command = "java -cp %s/stanford-ner.jar edu.stanford.nlp.ie.crf.CRFClassifier -loadClassifier %s/disease-ner-model.ser.gz -testFile %s/test.tok > %s/results.txt" % (app.config["LIB_PATH"], app.config['CLASSIFIER_PATH'], app.config['CLASSIFIER_PATH'], app.config['CLASSIFIER_PATH'])
     system(test_command)
 
-    with open('tmp/results.txt') as results_file:
+    with open('%s/results.txt' % app.config['CLASSIFIER_PATH']) as results_file:
         results = ''
         for line in results_file.read().split('\n'):
             if line:
