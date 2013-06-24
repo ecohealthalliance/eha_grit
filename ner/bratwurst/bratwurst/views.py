@@ -1,5 +1,5 @@
 from flask import render_template, request
-from app import app
+from bratwurst.application import application as app
 from glob import glob
 import re
 from os import system
