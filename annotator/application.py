@@ -1,12 +1,15 @@
 from flask import Flask, request
 import json, csv, re
-app = Flask(__name__)
+application = Flask(__name__)
 
 diseases = []
 symptoms = []
 
-@app.route("/", methods=['GET', 'POST'])
+@application.route("/", methods=['GET', 'POST'])
 def annotate():
+    if len(diseases) < 1:
+        load_data()
+
     text = request.data
 
     annotations = {}
@@ -51,6 +54,4 @@ def load_data():
 
 
 if __name__ == "__main__":
-    load_data()
-
-    app.run(port=5001)
+    application.run(port=5001)
