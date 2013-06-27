@@ -2,6 +2,7 @@ from flask import render_template, request
 from bratwurst.application import application as app
 from glob import glob
 import re
+import json
 from os import system
 
 @app.route('/')
@@ -43,7 +44,7 @@ def train():
                 with open(file.replace('ann', 'txt')) as txt_file:
                     txt = txt_file.read()
 
-                    type = 'Other'
+                    type = 'other'
                     word = ''
                     for i in range(0, len(txt)):
                         next_char = txt[i]
@@ -54,7 +55,7 @@ def train():
                         if re.compile('\s').match(next_char) and len(word):
                             training_data += '%s %s\n' % (word, type)
                             word = ''
-                            type = 'Other'
+                            type = 'other'
                         elif not re.compile('\s').match(next_char):
                             word += next_char
                         i += 1
@@ -88,3 +89,51 @@ def test():
 
         return results
 
+def _escaped_match(text, start, word):
+    if text[start:start+len(word)] == word:
+        return True
+    elif word == '-RRB-' and (text[start] == '>' or text[start] == ')' or text[start] == ']' or text[start:start+4] == '&lt;'):
+        return True
+    elif word == '-LRB-' and (text[start] == '<' or text[start] == '(' or text[start] == '[' or text[start:start+4] == '&rt;'):
+        return True
+    elif (word == '``' or word == '\'\'') and text[start] == '"':
+        return True
+    elif '\\' in word:
+        no_escape_word = word.replace('\\', '')
+        return no_escape_word == text[start:start+len(no_escape_word)]
+
+@app.route('/annotate', methods = ['POST'])
+def annotate():
+    test_data = request.data
+    
+    with open('%s/test.txt' % app.config['CLASSIFIER_PATH'], 'w') as test_file:
+        test_file.write(test_data)
+
+    tok_command = "java -cp %s/stanford-ner.jar edu.stanford.nlp.process.PTBTokenizer -options americanize=false %s/test.txt > %s/test.tok" % (app.config["LIB_PATH"], app.config['CLASSIFIER_PATH'], app.config['CLASSIFIER_PATH'])
+    system(tok_command)
+
+    test_command = "java -cp %s/stanford-ner.jar edu.stanford.nlp.ie.crf.CRFClassifier -loadClassifier %s/disease-ner-model.ser.gz -testFile %s/test.tok > %s/results.txt" % (app.config["LIB_PATH"], app.config['CLASSIFIER_PATH'], app.config['CLASSIFIER_PATH'], app.config['CLASSIFIER_PATH'])
+    system(test_command)
+
+    with open('%s/results.txt' % app.config['CLASSIFIER_PATH']) as results_file:
+        annotations = {}
+
+        lines = results_file.read().split('\n')
+
+        line_index = 0
+
+        for start_offset in range(0, len(test_data)):
+            if lines[line_index]:
+                (word, _, category) = lines[line_index].split('\t')
+                end_offset = start_offset + len(word)
+                if _escaped_match(test_data, start_offset,  word):
+                    if category.lower() != 'other':
+                        key = '%s_%i' % (word, start_offset)
+                        annotations[key] = {}
+                        annotations[key]['offsets'] = [[start_offset, end_offset]]
+                        annotations[key]['type'] = category
+                        annotations[key]['texts'] = [word]
+                    line_index += 1
+
+
+        return json.dumps(annotations)
