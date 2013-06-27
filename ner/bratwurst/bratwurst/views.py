@@ -102,8 +102,8 @@ def _escaped_match(text, start, word):
         no_escape_word = word.replace('\\', '')
         return no_escape_word == text[start:start+len(no_escape_word)]
 
-@app.route('/annotate', methods = ['POST'])
-def annotate():
+@app.route('/annotate/stanford', methods = ['POST'])
+def annotate_stanford():
     test_data = request.data
     
     with open('%s/test.txt' % app.config['CLASSIFIER_PATH'], 'w') as test_file:
