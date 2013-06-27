@@ -103,8 +103,15 @@ def _escaped_match(text, start, word):
         no_escape_word = word.replace('\\', '')
         return no_escape_word == text[start:start+len(no_escape_word)]
 
-@app.route('/annotate/stanford', methods = ['POST'])
-def annotate_stanford():
+@app.route('/annotate/stanford/custom', methods = ['POST'])
+def annotate_stanford_custom():
+    return annotate_stanford('%s/disease-ner-model.ser.gz' % app.config['CLASSIFIER_PATH'])
+
+@app.route('/annotate/stanford/muc', methods = ['POST'])
+def annotate_stanford_muc():
+    return annotate_stanford('%s/english.muc.7class.distsim.crf.ser.gz' % app.config['LIB_PATH'])
+
+def annotate_stanford(classifier_file):
     test_data = request.data
     
     with open('%s/test.txt' % app.config['CLASSIFIER_PATH'], 'w') as test_file:
@@ -113,7 +120,7 @@ def annotate_stanford():
     tok_command = "java -cp %s/stanford-ner.jar edu.stanford.nlp.process.PTBTokenizer -options americanize=false %s/test.txt > %s/test.tok" % (app.config["LIB_PATH"], app.config['CLASSIFIER_PATH'], app.config['CLASSIFIER_PATH'])
     system(tok_command)
 
-    test_command = "java -cp %s/stanford-ner.jar edu.stanford.nlp.ie.crf.CRFClassifier -loadClassifier %s/disease-ner-model.ser.gz -testFile %s/test.tok > %s/results.txt" % (app.config["LIB_PATH"], app.config['CLASSIFIER_PATH'], app.config['CLASSIFIER_PATH'], app.config['CLASSIFIER_PATH'])
+    test_command = "java -cp %s/stanford-ner.jar edu.stanford.nlp.ie.crf.CRFClassifier -loadClassifier %s -testFile %s/test.tok > %s/results.txt" % (app.config["LIB_PATH"], classifier_file, app.config['CLASSIFIER_PATH'], app.config['CLASSIFIER_PATH'])
     system(test_command)
 
     with open('%s/results.txt' % app.config['CLASSIFIER_PATH']) as results_file:
@@ -128,11 +135,11 @@ def annotate_stanford():
                 (word, _, category) = lines[line_index].split('\t')
                 end_offset = start_offset + len(word)
                 if _escaped_match(test_data, start_offset,  word):
-                    if category.lower() != 'other':
+                    if category.lower() != 'other' and category.lower() != 'o':
                         key = '%s_%i' % (word, start_offset)
                         annotations[key] = {}
                         annotations[key]['offsets'] = [[start_offset, end_offset]]
-                        annotations[key]['type'] = category
+                        annotations[key]['type'] = category.lower()
                         annotations[key]['texts'] = [word]
                     line_index += 1
 
