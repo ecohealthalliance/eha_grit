@@ -143,7 +143,7 @@ diseases = []
 symptoms = []
 
 @app.route("/annotate/matrix", methods=['GET', 'POST'])
-def annotate():
+def annotate_matrix():
     if len(diseases) < 1:
         _load_matrix_data()
 
