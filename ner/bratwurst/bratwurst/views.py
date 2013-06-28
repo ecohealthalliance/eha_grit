@@ -45,21 +45,25 @@ def train():
                 with open(file.replace('ann', 'txt')) as txt_file:
                     txt = txt_file.read()
 
-                    type = 'other'
-                    word = ''
-                    for i in range(0, len(txt)):
+                    i = 0
+                    while i < len(txt):
                         next_char = txt[i]
 
                         if annotations.get(i):
                             type = annotations[i][1]
+                            ann_end = int(annotations[i][3])
 
-                        if re.compile('\s').match(next_char) and len(word):
-                            training_data += '%s %s\n' % (word, type)
-                            word = ''
-                            type = 'other'
-                        elif not re.compile('\s').match(next_char):
-                            word += next_char
-                        i += 1
+                            words = txt[i:ann_end].split(' ')
+                            for word in words:
+                                training_data += '%s %s\n' % (word, type)
+                            i = ann_end
+                        else:
+                            if re.compile('\s').match(next_char):
+                                i += 1
+                            else:
+                                word = txt[i:].split('\n')[0].split(' ')[0]
+                                training_data += '%s %s\n' % (word, 'other')
+                                i += len(word)
                     
     with open('%s/train.tsv' % app.config['CLASSIFIER_PATH'], 'w') as train_file:
         train_file.write(training_data)
