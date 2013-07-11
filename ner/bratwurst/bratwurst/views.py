@@ -158,7 +158,7 @@ def annotate_matrix():
     if len(diseases) < 1:
         _load_matrix_data()
 
-    text = request.data
+    text = request.data or request.form["data"]
 
     annotations = {}
 
