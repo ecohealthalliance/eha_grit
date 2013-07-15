@@ -156,12 +156,12 @@ symptoms = []
 @app.route("/annotate/matrix/brat", methods=['GET', 'POST'])
 def annotate_matrix_brat():
     text = request.data
-    annotate_matrix(text)
+    return annotate_matrix(text)
 
 @app.route("/annotate/matrix", methods=['GET', 'POST'])
 def annotate_matrix_grits():
     text = request.form["data"]
-    annotate_matrix(text)
+    return annotate_matrix(text)
 
 def annotate_matrix(text):
     if len(diseases) < 1:
