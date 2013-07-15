@@ -153,12 +153,19 @@ def annotate_stanford(classifier_file):
 diseases = []
 symptoms = []
 
+@app.route("/annotate/matrix/brat", methods=['GET', 'POST'])
+def annotate_matrix_brat():
+    text = request.data
+    annotate_matrix(text)
+
 @app.route("/annotate/matrix", methods=['GET', 'POST'])
-def annotate_matrix():
+def annotate_matrix_grits():
+    text = request.form["data"]
+    annotate_matrix(text)
+
+def annotate_matrix(text):
     if len(diseases) < 1:
         _load_matrix_data()
-
-    text = request.form["data"] or request.data
 
     annotations = {}
 
