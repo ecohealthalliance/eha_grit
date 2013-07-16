@@ -172,7 +172,7 @@ def annotate_matrix(text):
     for start_offset in range(0, len(text)):
         if start_offset == 0 or text[start_offset - 1] == ' ':
             for end_offset in range(start_offset, len(text)):
-                if text[end_offset] == ' ' or end_offset == len(text) - 1:
+                if text[end_offset] == ' ' or text[end_offset] == ',' or text[end_offset] == '.' or end_offset == len(text) - 1:
                     word = text[start_offset:end_offset]
                     if word.lower() in diseases: 
                         key = '%s_%i' % (word, start_offset)
