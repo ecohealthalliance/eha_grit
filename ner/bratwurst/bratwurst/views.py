@@ -191,18 +191,10 @@ def annotate_matrix(text):
     return json.dumps(annotations)
 
 def _load_matrix_data():
-    with open('%s/Matrix_symp_dis.csv' % app.config['LIB_PATH'], 'rU') as f:
+    with open('%s/Matrix_symp_dis_v3.csv' % app.config['LIB_PATH'], 'rU') as f:
         reader = csv.reader(f)
         
         global diseases, symptoms
-        diseases = [' '.join(disease.split('_')).lower() for disease in reader.next()[1:]]
+        diseases = [' '.join(disease).lower() for disease in reader.next()[1:]]
 
-        # http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-camel-case
-        first_cap_re = re.compile('(.)([A-Z][a-z]+)')
-        all_cap_re = re.compile('([a-z0-9])([A-Z])')
-        def convert(name):
-            s1 = first_cap_re.sub(r'\1 \2', name)
-            return all_cap_re.sub(r'\1 \2', s1).lower()
-
-
-        symptoms = [convert(row[0]) for row in reader]
+        symptoms = [row[0].lower() for row in reader]
