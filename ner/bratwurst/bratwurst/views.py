@@ -167,12 +167,16 @@ def annotate_matrix(text):
     if len(diseases) < 1:
         _load_matrix_data()
 
+    max_symptom_length = len(max(symptoms, key=len))
+    max_disease_length = len(max(diseases, key=len))
+    max_length = max(max_symptom_length, max_disease_length)
+
     annotations = {}
 
     for start_offset in range(0, len(text)):
-        if start_offset == 0 or text[start_offset - 1] == ' ':
-            for end_offset in range(start_offset, len(text)):
-                if text[end_offset] == ' ' or text[end_offset] == ',' or text[end_offset] == '.' or end_offset == len(text) - 1:
+        if start_offset == 0 or text[start_offset - 1] == ' ' or text[start_offset - 1] == '\n':
+            for end_offset in range(start_offset, min(start_offset + max_length + 1, len(text))):
+                if text[end_offset] == ' ' or text[end_offset] == ',' or text[end_offset] == '.' or text[end_offset] == '\n' or end_offset == len(text) - 1:
                     word = text[start_offset:end_offset]
                     if word.lower() in diseases: 
                         key = '%s_%i' % (word, start_offset)
@@ -186,7 +190,8 @@ def annotate_matrix(text):
                         annotations[key]['offsets'] = [[start_offset, end_offset]]
                         annotations[key]['type'] = 'symptom'
                         annotations[key]['texts'] = [word]
-                    break
+                    if text[end_offset] == '.' or text[end_offset] == ',':
+                        break
 
     return json.dumps(annotations)
 
