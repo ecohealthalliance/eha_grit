@@ -1,28 +1,26 @@
 import argparse
 from collections import defaultdict
+from importlib import import_module
 
 from format import bogich
-from classifier import svm_standard, svm_probability, sklearn_svm, naive_bayes, decision_tree, stochastic_gradient_descent, random_forest, gradient_boosting, extra_trees, gmm, k_means, ward, sklearn_novelty
 
 FORMATS = {
     'bogich': bogich,
 }
 
-CLASSIFIERS = {
-    'svm_standard': svm_standard,
-    'svm_probability': svm_probability,
-    'sklearn_svm': sklearn_svm,
-    'naive_bayes': naive_bayes,
-    'decision_tree': decision_tree,
-    'stochastic_gradient_descent': stochastic_gradient_descent,
-    'random_forest': random_forest,
-    'gradient_boosting': gradient_boosting,
-    'extra_trees': extra_trees,
-    'gmm': gmm,
-    'k_means': k_means,
-    'ward': ward,
-    'sklearn_novelty': sklearn_novelty,
-}
+CLASSIFIERS = [
+    'sklearn_svm',
+    'naive_bayes',
+    'decision_tree',
+    'stochastic_gradient_descent',
+    'random_forest',
+    'gradient_boosting',
+    'extra_trees',
+    'gmm',
+    'k_means',
+    'ward',
+    'sklearn_novelty',
+]
 
 def cross_validate(data, classifier):
     correct = defaultdict(int)
@@ -89,19 +87,18 @@ if __name__ == '__main__':
     
     parser.add_argument('-training', help="Training data file", default="ProMED_master_clean.csv")
     parser.add_argument('-training_format', help="Format of training data", choices=FORMATS.keys(), default="bogich")
-    parser.add_argument('-classifier', help="Classifier", choices=CLASSIFIERS.keys(), default='svm_standard')
+    parser.add_argument('-classifier', help="Classifier", choices=CLASSIFIERS, default='svm_standard')
     parser.add_argument('-cross_validate', help="Whether to run cross validation", default=False)
     parser.add_argument('-test', help="Test data file", default=None)
     parser.add_argument('-test_format', help="Format of test data", choices=FORMATS.keys(), default="bogich")
 
     args = parser.parse_args()
 
-
     training_format = FORMATS[args.training_format]
 
     training_data = training_format.read(args.training)
 
-    classifier = CLASSIFIERS[args.classifier]
+    classifier = import_module("classifier.%s" % args.classifier)
 
     if args.cross_validate:
         print "Running cross validation"
