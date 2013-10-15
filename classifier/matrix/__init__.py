@@ -9,12 +9,25 @@ def _load_symptom_map():
 		return dict([(row[0], row[1]) for row in reader])
 
 def _load_matrix_data():
+	disease_map = {
+	    'Bacterial Meningitis' : 'Meningitis-bacterial',
+	    'Dengue' : 'Dengue',
+	    'JE' : 'Japanese Encephalitis',
+	    'Measles' : 'Measles',
+	    'Malaria' : 'Malaria',
+	    'Meningitis-aseptic' : 'Meningitis -aseptic (viral)',
+	    'Nipah Virus' : 'Nipah and Nipah-like Virus Disease',
+	    'Typhoid/Enteric Fever' : 'Typhoid and Enteric Fever',
+	    'Chandipura' : 'Chandipura and Vesicular stomatitis viruses',
+	    'Chikungunya' : 'Chikungunya',
+	}
+
 	global diseases_by_symptom
 	with open('classifier/matrix/Matrix_symp_dis_v4.csv') as f:
 		reader = csv.DictReader(f, delimiter='\t')
 		diseases_by_symptom = {}
 		for row in reader:
-			diseases_by_symptom[row.get('Symptom')] = [disease for disease, present in row.iteritems() if present is '1']
+			diseases_by_symptom[row.get('Symptom')] = [disease for disease, present in row.iteritems() if present is '1' and disease in disease_map.values()]
 		return diseases_by_symptom
 
 def _diagnose(symptoms):

@@ -52,7 +52,7 @@ def cross_validate(data, classifier):
         (predictions, probabilities) = classifier.classify(train, test)
         prediction = predictions[0]
         actual = test[0]['attr']['Disease']
-        if prediction == actual:
+        if prediction == disease_map.get(actual):
             correct[actual] += 1
         else:
             print "Misclassified %s as %s in row %d" % (actual, prediction, i)
