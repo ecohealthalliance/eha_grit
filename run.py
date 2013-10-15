@@ -20,6 +20,7 @@ CLASSIFIERS = [
     'k_means',
     'ward',
     'sklearn_novelty',
+    'matrix',
 ]
 
 def cross_validate(data, classifier):
@@ -35,12 +36,29 @@ def cross_validate(data, classifier):
             else:
                 test.append(item)
 
-        prediction = classifier.classify(train, test)[0][0]
+        disease_map = {
+            'Bacterial Meningitis' : 'Meningitis-bacterial',
+            'Dengue' : 'Dengue',
+            'JE' : 'Japanese Encephalitis',
+            'Measles' : 'Measles',
+            'Malaria' : 'Malaria',
+            'Meningitis-aseptic' : 'Meningitis -aseptic (viral)',
+            'Nipah Virus' : 'Nipah and Nipah-like Virus Disease',
+            'Typhoid/Enteric Fever' : 'Typhoid and Enteric Fever',
+            'Chandipura' : 'Chandipura and Vesicular stomatitis viruses',
+            'Chikungunya' : 'Chikungunya',
+        }
+
+        (predictions, probabilities) = classifier.classify(train, test)
+        prediction = predictions[0]
         actual = test[0]['attr']['Disease']
         if prediction == actual:
             correct[actual] += 1
         else:
             print "Misclassified %s as %s in row %d" % (actual, prediction, i)
+            print "Symptoms for %s: %s" % (disease_map.get(actual), probabilities[0].get(disease_map.get(actual)))
+            print "Symptoms for %s: %s" % (prediction, probabilities[0].get(prediction))
+            print
             wrong[actual] += 1
 
     total_correct = 0
