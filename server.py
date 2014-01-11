@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, '/var/lib/jenkins/jobs/diagnose-deploy/workspace')
+
 import flask
 from flask import render_template, request
 from run import test
