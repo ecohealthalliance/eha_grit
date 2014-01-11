@@ -28,11 +28,11 @@ def diagnose():
         attr = {'Disease': disease, 'ID': id}
         pos = []
         for symptom in all_symptoms:
-             val = 0
-             if symptom in symptoms:
-                  val = 1
-             attr[symptom] = val
-             pos.append(val)
+            val = 0
+            if symptom in symptoms:
+                val = 1
+            attr[symptom] = val
+            pos.append(val)
         item = {
             '_id': id,
             'pos': pos,
