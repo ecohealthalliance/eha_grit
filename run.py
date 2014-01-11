@@ -82,6 +82,7 @@ def test(train, test, classifier):
 
     print ''
     print "Total Correct: %d/%d" % (total_correct, total_correct + total_wrong)
+    return predictions
 
 
 if __name__ == '__main__':
