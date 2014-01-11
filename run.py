@@ -2,15 +2,13 @@ import argparse
 from collections import defaultdict
 
 from format import bogich
-from classifier import svm_standard, svm_probability, sklearn_svm, naive_bayes, decision_tree, stochastic_gradient_descent, random_forest, gradient_boosting, extra_trees, gmm, k_means, ward, sklearn_novelty
+from classifier import sklearn_svm, naive_bayes, decision_tree, stochastic_gradient_descent, random_forest, gradient_boosting, extra_trees, gmm, k_means, ward, sklearn_novelty
 
 FORMATS = {
     'bogich': bogich,
 }
 
 CLASSIFIERS = {
-    'svm_standard': svm_standard,
-    'svm_probability': svm_probability,
     'sklearn_svm': sklearn_svm,
     'naive_bayes': naive_bayes,
     'decision_tree': decision_tree,
