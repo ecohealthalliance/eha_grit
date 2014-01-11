@@ -6,6 +6,10 @@ import json
 
 app = flask.Flask(__name__)
 
+@app.route('/status', methods= ['GET'])
+def status():
+    return "true"
+
 @app.route('/diagnose', methods = ['POST'])
 def diagnose():
     data = json.loads(request.data)
