@@ -20,17 +20,17 @@ try:
         training_data = data.get('training_data')
         test_data = data.get('test_data')
         all_symptoms = set([])
-        for disease, symptoms in training_data.iteritems():
-            all_symptoms = all_symptoms.union(symptoms)
+        for report in training_data:
+            all_symptoms = all_symptoms.union(report.get('symptoms'))
         all_symptoms = list(all_symptoms)
         training_nodes = []
         id = 0
-        for disease, symptoms in training_data.iteritems():
-            attr = {'Disease': disease, 'ID': id}
+        for report in training_data:
+            attr = {'Disease': report.get('disease'), 'ID': id}
             pos = []
             for symptom in all_symptoms:
                 val = 0
-                if symptom in symptoms:
+                if symptom in report.get('symptoms'):
                     val = 1
                 attr[symptom] = val
                 pos.append(val)
