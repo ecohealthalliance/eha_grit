@@ -4,21 +4,24 @@ try:
 
     import flask
     from flask import render_template, request
-    from run import test
+    from run import test, train as train_model
     from classifier import sklearn_svm
     import json
 
     app = flask.Flask(__name__)
 
+    all_symptoms = []
+    trained_svm = None
+
     @app.route('/status', methods= ['GET'])
     def status():
         return "true"
 
-    @app.route('/diagnose', methods = ['POST'])
-    def diagnose():
+    @app.route('/train', methods = ['POST'])
+    def train():
+        global all_symptoms, trained_svm
         data = json.loads(request.data)
         training_data = data.get('training_data')
-        test_data = data.get('test_data')
         all_symptoms = set([])
         for report in training_data:
             all_symptoms = all_symptoms.union(report.get('symptoms'))
@@ -41,6 +44,14 @@ try:
             }
             training_nodes.append(item)
             id += 1
+        trained_svm = train_model(training_nodes, sklearn_svm)
+        return 'true'
+
+    @app.route('/diagnose', methods = ['POST'])
+    def diagnose():
+        global all_symptoms, trained_svm
+        data = json.loads(request.data)
+        test_data = data.get('test_data')
         pos = []
         attr = {'Disease': 'unknown', 'ID': 0}
         for symptom in all_symptoms:
@@ -50,7 +61,8 @@ try:
             pos.append(val)
             attr[symptom] = val
         test_node = {'pos': pos, 'attr': attr,  '_id': 0, 'ID': 0}
-        prediction = test(training_nodes, [test_node], sklearn_svm)[0]
+        print trained_svm
+        prediction = test([test_node], trained_svm, sklearn_svm)[0]
         return prediction
     
 

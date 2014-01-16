@@ -54,11 +54,14 @@ def cross_validate(data, classifier):
     print ''
     print "Total Correct: %d/%d" % (total_correct, total_correct + total_wrong)
 
-def test(train, test, classifier):
+def train(train, classifier):
+    return classifier.train(train)
+
+def test(test, model, classifier):
     correct = defaultdict(int)
     wrong = defaultdict(int)
 
-    (predictions, probabilities) = classifier.classify(train, test)
+    (predictions, probabilities) = classifier.classify(test, model)
 
     for i in range(0, len(test)):
         id = test[i]['attr']['ID']

@@ -21,7 +21,7 @@ def int2label (label_int):
     return inv_labels[label_int]
 
 
-def classify(train, test, classifier):
+def train(train, classifier):
     y = []
     x = []
     for item in train:
@@ -29,7 +29,9 @@ def classify(train, test, classifier):
         x.append (item['pos'])
 
     model = classifier.fit(x, y)
+    return model
 
+def classify(test, model):
     x = []
     for item in test:
         x.append(item['pos'])
