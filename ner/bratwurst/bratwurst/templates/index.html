@@ -1,0 +1,26 @@
+<html>
+  <head>
+    <title>GRIT - Named Entity Recognition</title>
+    <link rel="stylesheet" type="text/css" href="static/app.css"/>
+    <script src="static/jquery-2.0.2.min.js"></script>
+    <script src="static/app.js"></script>
+  </head>
+  <body>
+      <div id="training-data">
+        <h1>ProMED Training Data</h1>
+        {% for id in ids %}
+        <p><a href="{{brat_url}}{{id}}">{{id}}
+          {% if id not in annotated_ids %}
+           - Needs Annotation
+          {% endif %}
+          </a>
+        {% endfor %}
+      </div>
+      <div>
+        <div id="train">Train</div>
+        <textarea id="test-data"></textarea>
+        <div id="test">Test</div>
+        <div id="test-results"></div>
+      </div>
+  </body>
+</html>

@@ -63,12 +63,13 @@ def test(train, test, classifier):
     (predictions, probabilities) = classifier.classify(train, test)
 
     for i in range(0, len(test)):
+        id = test[i]['attr']['ID']
         actual = test[i]['attr']['Disease']
         if actual:
             if actual == predictions[i]:
                 correct[actual] += 1
             else:
-                print "Misclassified %s as %s" % (actual, predictions[i])
+                print "ID %s: Misclassified %s as %s" % (id, actual, predictions[i])
                 wrong[actual] += 1
 
     total_correct = 0
